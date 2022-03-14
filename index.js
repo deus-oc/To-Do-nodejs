@@ -19,6 +19,9 @@ app.use(express.urlencoded({extended: false}))
 //Routes
 app.use('/', todoRouter);
 
+//frontend
+app.use(express.static('public'));
+
 app.listen(PORT, (err) => {
     if (err) {
         console.error(`Failed to run the server: ${err}`)

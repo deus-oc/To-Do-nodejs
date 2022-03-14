@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <title>Todo App</title>
+</head>
+<body>
+    <header>
+        <h2> TODO List </h2>
+        <input type="text" id="add-input">
+        <button id="add-button" type="submit"> Add </button>    
+    </header>
+    <button onclick="deleteAll()"> DeleteALL</button>
+    
+    <ul>
+    
+    </ul>
+    <script>
+        async function editClick(id, newContent){
+            await axios.patch(`/editnote/${id}`, {"content": newContent})
+        }
+
+        async function deleteClick(id){
+            await axios.delete(`/deletenote/${id}`)
+            document.getElementById("li-" + id).remove()
+        }
+
+        async function deleteAll(){
+            await axios.delete(`/deletenote`);
+            document.querySelector('ul').innerHTML = "";
+        }
+        
+        async function add(){
+            const bodyContent = document.getElementById("add-input").value
+            const body = await axios.post('/addnote', {"content": bodyContent});
+            const item = {
+                _id: body.data.id,
+                content: bodyContent
+            };
+            const todoList = document.querySelector('ul');
+            todoList.appendChild(createTodoElement(item));
+        }
+
+        function createTodoElement(item){
+            const todoElement = document.createElement('li'); 
+            todoElement.setAttribute("id", "li-" + item._id);
+            var textInput = document.createElement("input");
+            textInput.setAttribute("id", "input-" + item._id);            
+            textInput.setAttribute("type", "text");
+            textInput.setAttribute("value", item.content)
+            
+            const editButton = document.createElement("button");
+            editButton.innerHTML = "Edit";
+            editButton.setAttribute("id", "edit-" + item._id);
+            editButton.onclick = function(){
+                editClick(item._id, document.getElementById("input-"+item._id).value);
+            }
+            
+            const deleteButton = document.createElement("button");
+            deleteButton.innerHTML = "Delete";
+            deleteButton.setAttribute("id", "delete-" + item._id);
+            deleteButton.onclick = function(){
+                deleteClick(item._id);
+            }
+            
+            todoElement.appendChild(textInput);
+            todoElement.appendChild(editButton);
+            todoElement.appendChild(deleteButton);            
+            return todoElement;
+        }
+
+
+        async function fetchNotes(){
+              const responseObj = await axios.get(`/getnote`);
+              const todoItems = responseObj.data.note;
+              const todoList = document.querySelector('ul');
+              todoItems.forEach((item) => {
+                todoList.appendChild(createTodoElement(item));
+              })
+        }
+        
+
+        window.onload = fetchNotes
+        document.getElementById("add-button").addEventListener("click", add);
+    </script>
+</body>
+</html>
